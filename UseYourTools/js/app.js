@@ -1,7 +1,7 @@
 // UseYourTools for Work — Main App
 
 /* ============================================================
-   Zen Quotes (ported from iOS app, 7 themes × 7 quotes)
+   Zen Quotes
    ============================================================ */
 const ZEN_QUOTES = [
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
@@ -59,7 +59,6 @@ function formatDateShort(date) {
 }
 
 function isoDateKey(date) {
-  // Returns YYYY-MM-DD using local time
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
@@ -78,18 +77,11 @@ function getGreeting() {
    ============================================================ */
 
 const ICONS = {
-  home: `<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  planner: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-  cases: `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>`,
-  settings: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>`,
-  quote: `<svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>`,
-  clock: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-  chevronLeft: `<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>`,
-  chevronRight: `<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`,
-  x: `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  home:     `<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  planner:  `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+  cases:    `<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>`,
+  quote:    `<svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>`,
   calendar: `<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-  briefcase: `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>`,
-  inbox: `<svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>`,
   arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
 };
 
@@ -116,7 +108,7 @@ function saveNote(dateKey, hour, text) {
    ============================================================ */
 
 const state = {
-  screen: 'dashboard',        // dashboard | planner | cases
+  screen: 'dashboard',
   prefs: loadPrefs(),
   plannerDate: new Date(),
 };
@@ -156,8 +148,9 @@ function closeSettings() {
 }
 
 function renderSettingsPanel() {
-  const p = state.prefs;
+  const p    = state.prefs;
   const body = document.getElementById('settings-body');
+  const connected = calIsConnected();
 
   body.innerHTML = `
     <!-- Profile -->
@@ -175,11 +168,9 @@ function renderSettingsPanel() {
       <div class="settings-section-title">Appearance</div>
       <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px">
         <div class="settings-label">Color scheme</div>
-        <div class="theme-swatches">
-          ${renderThemeSwatches(p.colorScheme)}
-        </div>
+        <div class="theme-swatches">${renderThemeSwatches(p.colorScheme)}</div>
       </div>
-      <div class="settings-row" id="dark-mode-row" style="${p.colorScheme !== 'modern' ? 'opacity:0.4;pointer-events:none' : ''}">
+      <div class="settings-row" style="${p.colorScheme !== 'modern' ? 'opacity:0.4;pointer-events:none' : ''}">
         <div class="settings-label">
           Dark mode
           <span class="settings-sublabel">Modern theme only</span>
@@ -191,20 +182,16 @@ function renderSettingsPanel() {
       </div>
     </div>
 
-    <!-- Time -->
+    <!-- Time & Planner -->
     <div class="settings-section">
-      <div class="settings-section-title">Time & Planner</div>
+      <div class="settings-section-title">Time &amp; Planner</div>
       <div class="settings-row">
         <div class="settings-label">Day starts at</div>
-        <select class="settings-select" id="pref-start">
-          ${hourOptions(p.startHour, p.use12HourClock)}
-        </select>
+        <select class="settings-select" id="pref-start">${hourOptions(p.startHour, p.use12HourClock)}</select>
       </div>
       <div class="settings-row">
         <div class="settings-label">Day ends at</div>
-        <select class="settings-select" id="pref-end">
-          ${hourOptions(p.endHour, p.use12HourClock)}
-        </select>
+        <select class="settings-select" id="pref-end">${hourOptions(p.endHour, p.use12HourClock)}</select>
       </div>
       <div class="settings-row">
         <div class="settings-label">12-hour clock</div>
@@ -230,61 +217,73 @@ function renderSettingsPanel() {
       </div>
     </div>
 
-    <!-- Integrations -->
+    <!-- Google Calendar -->
     <div class="settings-section">
-      <div class="settings-section-title">Integrations</div>
+      <div class="settings-section-title">Google Calendar</div>
+      ${connected ? `
+        <div class="cal-connect-box">
+          <div class="cal-connected-row">
+            <div class="cal-status-dot"></div>
+            <div class="cal-status-label">Connected</div>
+            <button class="cal-disconnect-btn" onclick="calDisconnect()">Disconnect</button>
+          </div>
+        </div>
+      ` : `
+        <div class="cal-connect-box">
+          <p>
+            Connect your Google Calendar to see upcoming events on the dashboard and in your daily planner.
+            You'll need a Google OAuth Client ID —
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank">create one here</a>
+            (set the authorized origin to <code>https://klm-snyk.github.io</code> and
+            <code>http://localhost:4200</code> for local testing).
+          </p>
+          <div class="cal-input-row">
+            <input
+              class="cal-client-input"
+              id="gcal-client-id-input"
+              type="text"
+              placeholder="Your Google Client ID (…apps.googleusercontent.com)"
+              value="${escHtml(calState.clientId || '')}">
+            <button class="cal-connect-btn" onclick="calConnect()">Connect</button>
+          </div>
+        </div>
+      `}
+    </div>
+
+    <!-- Coming Soon -->
+    <div class="settings-section">
+      <div class="settings-section-title">Coming Soon</div>
       <div class="settings-row">
         <div class="settings-label">
-          Calendar
-          <span class="settings-sublabel">Coming soon</span>
+          Gmail
+          <span class="settings-sublabel">Inbox summary on dashboard</span>
         </div>
-        <select class="settings-select" id="pref-cal" disabled>
-          <option value="none">None</option>
-          <option value="google">Google Calendar</option>
-          <option value="outlook">Outlook</option>
-        </select>
+        <span style="font-size:11px;color:var(--text-secondary);font-weight:600;background:var(--surface);padding:3px 8px;border-radius:99px">Soon</span>
       </div>
       <div class="settings-row">
         <div class="settings-label">
-          Email client
-          <span class="settings-sublabel">Coming soon</span>
+          Cases
+          <span class="settings-sublabel">JIRA or Salesforce caseload</span>
         </div>
-        <select class="settings-select" id="pref-email" disabled>
-          <option value="default">Default</option>
-          <option value="gmail">Gmail</option>
-        </select>
-      </div>
-      <div class="settings-row">
-        <div class="settings-label">
-          Case management
-          <span class="settings-sublabel">JIRA or Salesforce — coming soon</span>
-        </div>
-        <select class="settings-select" id="pref-cases" disabled>
-          <option value="none">None</option>
-          <option value="jira">JIRA</option>
-          <option value="salesforce">Salesforce</option>
-        </select>
+        <span style="font-size:11px;color:var(--text-secondary);font-weight:600;background:var(--surface);padding:3px 8px;border-radius:99px">Soon</span>
       </div>
     </div>
   `;
 
-  // Bind live changes
   bindSettingEvents();
 }
 
 function renderThemeSwatches(selected) {
   const themes = [
-    { id: 'modern',  color: '#6366F1', label: 'Modern'   },
-    { id: 'earth',   color: '#8C6A4A', label: 'Earth'    },
-    { id: 'nature',  color: '#5A8A6A', label: 'Nature'   },
-    { id: 'sunny',   color: '#D4A574', label: 'Sunny'    },
-    { id: 'purple',  color: '#9B6FA8', label: 'Violet'   },
+    { id: 'modern', color: '#6366F1', label: 'Modern' },
+    { id: 'earth',  color: '#8C6A4A', label: 'Earth'  },
+    { id: 'nature', color: '#5A8A6A', label: 'Nature' },
+    { id: 'sunny',  color: '#D4A574', label: 'Sunny'  },
+    { id: 'purple', color: '#9B6FA8', label: 'Violet' },
   ];
   return themes.map(t => `
     <div class="theme-option" onclick="selectTheme('${t.id}')">
-      <div class="theme-swatch ${selected === t.id ? 'selected' : ''}"
-           data-theme-id="${t.id}"
-           style="background:${t.color}"></div>
+      <div class="theme-swatch ${selected === t.id ? 'selected' : ''}" style="background:${t.color}"></div>
       <span class="theme-swatch-label">${t.label}</span>
     </div>
   `).join('');
@@ -301,7 +300,6 @@ function hourOptions(selectedHour, use12) {
 
 function selectTheme(themeId) {
   state.prefs.colorScheme = themeId;
-  // Dark mode only valid for modern
   if (themeId !== 'modern') state.prefs.darkMode = false;
   savePrefs(state.prefs);
   applyTheme(state.prefs);
@@ -310,7 +308,6 @@ function selectTheme(themeId) {
 }
 
 function bindSettingEvents() {
-  // Name
   const nameEl = document.getElementById('pref-name');
   if (nameEl) nameEl.addEventListener('change', () => {
     state.prefs.userName = nameEl.value.trim();
@@ -318,7 +315,6 @@ function bindSettingEvents() {
     if (state.screen === 'dashboard') renderDashboard();
   });
 
-  // Dark mode
   const darkEl = document.getElementById('pref-dark');
   if (darkEl) darkEl.addEventListener('change', () => {
     state.prefs.darkMode = darkEl.checked;
@@ -326,7 +322,6 @@ function bindSettingEvents() {
     applyTheme(state.prefs);
   });
 
-  // Start hour
   const startEl = document.getElementById('pref-start');
   if (startEl) startEl.addEventListener('change', () => {
     state.prefs.startHour = Number(startEl.value);
@@ -334,7 +329,6 @@ function bindSettingEvents() {
     if (state.screen === 'planner') renderPlanner();
   });
 
-  // End hour
   const endEl = document.getElementById('pref-end');
   if (endEl) endEl.addEventListener('change', () => {
     state.prefs.endHour = Number(endEl.value);
@@ -342,12 +336,10 @@ function bindSettingEvents() {
     if (state.screen === 'planner') renderPlanner();
   });
 
-  // 12-hour clock
   const h12El = document.getElementById('pref-12h');
   if (h12El) h12El.addEventListener('change', () => {
     state.prefs.use12HourClock = h12El.checked;
     savePrefs(state.prefs);
-    // Re-render start/end selects with updated format
     const s = document.getElementById('pref-start');
     const e = document.getElementById('pref-end');
     if (s) s.innerHTML = hourOptions(state.prefs.startHour, state.prefs.use12HourClock);
@@ -355,7 +347,6 @@ function bindSettingEvents() {
     if (state.screen === 'planner') renderPlanner();
   });
 
-  // Quotes
   const quotesEl = document.getElementById('pref-quotes');
   if (quotesEl) quotesEl.addEventListener('change', () => {
     state.prefs.showZenQuotes = quotesEl.checked;
@@ -365,15 +356,60 @@ function bindSettingEvents() {
 }
 
 /* ============================================================
+   About Panel
+   ============================================================ */
+
+function openAbout() {
+  document.getElementById('about-panel').classList.add('open');
+  document.getElementById('about-overlay').classList.add('open');
+}
+
+function closeAbout() {
+  document.getElementById('about-panel').classList.remove('open');
+  document.getElementById('about-overlay').classList.remove('open');
+}
+
+/* ============================================================
    Dashboard
    ============================================================ */
 
 function renderDashboard() {
   const el = document.getElementById('dash-content');
-  const p = state.prefs;
+  const p  = state.prefs;
   const now = new Date();
   const greeting = `${getGreeting()}${p.userName ? `, ${p.userName}` : ''}`;
   const quote = getDailyQuote();
+  const events = calUpcomingEvents();
+
+  // Build events card content
+  let eventsCardContent = '';
+  if (!calIsConnected()) {
+    eventsCardContent = `
+      <div class="dash-card-value">—</div>
+      <div class="dash-card-sub">Connect your Google Calendar to see upcoming events</div>
+      <div class="dash-card-action" onclick="openSettings()" style="cursor:pointer">
+        Connect calendar ${ICONS.arrowRight}
+      </div>`;
+  } else if (events.length === 0) {
+    eventsCardContent = `
+      <div class="dash-card-value" style="font-size:16px;font-weight:500">All clear</div>
+      <div class="dash-card-sub">No upcoming events in the next 7 days</div>`;
+  } else {
+    const todayEvents = calTodayEvents();
+    eventsCardContent = `
+      <div class="dash-card-value" style="font-size:22px">${todayEvents.length} today</div>
+      <div class="event-list">
+        ${events.slice(0, 4).map(e => `
+          <a class="event-item" href="${escHtml(e.link)}" target="_blank">
+            <div class="event-time-col">${calFormatEventTime(e)}</div>
+            <div class="event-details">
+              <div class="event-title">${escHtml(e.title)}</div>
+              <div class="event-date-label">${calFormatEventDate(e)}</div>
+            </div>
+          </a>
+        `).join('')}
+      </div>`;
+  }
 
   el.innerHTML = `
     <div class="dashboard-greeting">
@@ -383,7 +419,6 @@ function renderDashboard() {
     </div>
 
     <div class="dashboard-cards">
-      <!-- Today's Planner -->
       <div class="dash-card" onclick="navigate('planner')">
         <div class="dash-card-header">
           <div class="dash-card-icon">${ICONS.planner}</div>
@@ -393,7 +428,6 @@ function renderDashboard() {
         <div class="dash-card-sub">Open your day view →</div>
       </div>
 
-      <!-- Cases placeholder -->
       <div class="dash-card" onclick="navigate('cases')">
         <div class="dash-card-header">
           <div class="dash-card-icon">${ICONS.cases}</div>
@@ -404,19 +438,15 @@ function renderDashboard() {
         <div class="dash-card-action">Set up integration ${ICONS.arrowRight}</div>
       </div>
 
-      <!-- Upcoming Events placeholder -->
       <div class="dash-card">
         <div class="dash-card-header">
           <div class="dash-card-icon">${ICONS.calendar}</div>
           <div class="dash-card-title">Upcoming Events</div>
         </div>
-        <div class="dash-card-value">—</div>
-        <div class="dash-card-sub">Connect your calendar to see events here</div>
-        <div class="dash-card-action">Connect calendar ${ICONS.arrowRight}</div>
+        ${eventsCardContent}
       </div>
 
       ${p.showZenQuotes ? `
-      <!-- Quote -->
       <div class="dash-card quote-card">
         <div class="dash-card-header">
           <div class="dash-card-icon">${ICONS.quote}</div>
@@ -436,9 +466,7 @@ let clockInterval = null;
 function formatCurrentTime() {
   const now = new Date();
   return now.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: state.prefs.use12HourClock,
+    hour: 'numeric', minute: '2-digit', hour12: state.prefs.use12HourClock,
   });
 }
 
@@ -462,7 +490,6 @@ function renderPlanner() {
   const now = new Date();
   const isToday = isoDateKey(now) === dateKey;
 
-  // Header
   const navEl = document.getElementById('planner-nav-date');
   if (navEl) {
     navEl.innerHTML = `
@@ -474,7 +501,6 @@ function renderPlanner() {
   const todayBtn = document.getElementById('planner-today-btn');
   if (todayBtn) todayBtn.style.display = isToday ? 'none' : '';
 
-  // Time blocks
   const body = document.getElementById('planner-blocks');
   if (!body) return;
 
@@ -486,19 +512,14 @@ function renderPlanner() {
       <div class="time-block${isCurrent ? ' current-hour' : ''}">
         <div class="time-label">${formatTime(h, 0, p.use12HourClock)}</div>
         <div class="time-block-content">
-          <textarea class="time-block-notes"
-            rows="2"
-            placeholder="Add notes..."
-            data-hour="${h}"
-            data-date="${dateKey}"
-          >${escHtml(savedNote)}</textarea>
+          <textarea class="time-block-notes" rows="2" placeholder="Add notes..."
+            data-hour="${h}" data-date="${dateKey}">${escHtml(savedNote)}</textarea>
         </div>
       </div>
     `;
   }
   body.innerHTML = html;
 
-  // Auto-scroll to current hour if today
   if (isToday) {
     setTimeout(() => {
       const cur = body.querySelector('.current-hour');
@@ -506,17 +527,12 @@ function renderPlanner() {
     }, 50);
   }
 
-  // Save notes on input
   body.querySelectorAll('.time-block-notes').forEach(ta => {
     ta.addEventListener('input', () => {
       saveNote(ta.dataset.date, Number(ta.dataset.hour), ta.value);
-    });
-    // Auto-grow
-    ta.addEventListener('input', () => {
       ta.style.height = 'auto';
       ta.style.height = ta.scrollHeight + 'px';
     });
-    // Grow on load if content
     if (ta.value) {
       ta.style.height = 'auto';
       ta.style.height = ta.scrollHeight + 'px';
@@ -553,25 +569,26 @@ function escHtml(str) {
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Apply saved theme immediately
   applyTheme(state.prefs);
+  calInit();
 
-  // Wire up nav items
+  // Nav
   document.querySelectorAll('.nav-item[data-screen]').forEach(el => {
     el.addEventListener('click', () => navigate(el.dataset.screen));
   });
 
-  // Wire up settings button
-  document.getElementById('settings-btn').addEventListener('click', openSettings);
-  document.getElementById('nav-settings-btn').addEventListener('click', openSettings);
+  // Settings
   document.getElementById('settings-close').addEventListener('click', closeSettings);
   document.getElementById('settings-overlay').addEventListener('click', closeSettings);
+
+  // About
+  document.getElementById('about-close').addEventListener('click', closeAbout);
+  document.getElementById('about-overlay').addEventListener('click', closeAbout);
 
   // Planner nav
   document.getElementById('planner-prev').addEventListener('click', () => plannerChangeDay(-1));
   document.getElementById('planner-next').addEventListener('click', () => plannerChangeDay(1));
   document.getElementById('planner-today-btn').addEventListener('click', plannerGoToday);
 
-  // Initial screen
   navigate('dashboard');
 });
