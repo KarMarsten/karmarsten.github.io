@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLM Apps</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 2.5rem;
+    }
+
+    .apps {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .card {
+      background: #1e2330;
+      border: 1px solid #2d3448;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      width: 280px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: #4f6ef7;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(79, 110, 247, 0.15);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #f1f5f9;
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <h1>KLM Apps</h1>
+
+  <div class="apps">
+    <a class="card" href="./UseYourTools/">
+      <div class="card-icon">🗂️</div>
+      <div class="card-title">UseYourTools for Work</div>
+      <div class="card-desc">Workday management — daily planner, cases, and calendar in one place.</div>
+    </a>
+
+    <a class="card" href="./moztracker/">
+      <div class="card-icon">🎸</div>
+      <div class="card-title">Moz Tracker</div>
+      <div class="card-desc">Will He Show Up? — tracks upcoming Morrissey concerts and cancellation risk.</div>
+    </a>
+  </div>
+
+  <footer>klm-snyk.github.io</footer>
+</body>
+</html>
