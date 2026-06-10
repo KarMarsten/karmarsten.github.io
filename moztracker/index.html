@@ -9,66 +9,79 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ── Design tokens (mirrors UseYourTools Modern theme) ── */
     :root {
       --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --primary:        #6366F1;
-      --primary-light:  #EEF2FF;
-      --secondary:      #EC4899;
-      --accent:         #8B5CF6;
-      --bg:             #FFFFFF;
-      --surface:        #F3F4F6;
-      --surface2:       #E5E7EB;
-      --text:           #1F2937;
-      --text-secondary: #6B7280;
-      --border:         #E5E7EB;
-      --sidebar-bg:     #F9FAFB;
-      --sidebar-text:   #4B5563;
-      --sidebar-active: #6366F1;
-      --sidebar-active-bg: #EEF2FF;
       --radius: 12px;
       --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
-      --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
       --risk-low:    #10B981;
       --risk-medium: #F59E0B;
       --risk-high:   #EF4444;
-    }
-
-    /* ── Dark mode ── */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --primary:        #818CF8;
-        --primary-light:  #1E1B4B;
-        --secondary:      #F472B6;
-        --accent:         #A78BFA;
-        --bg:             #111827;
-        --surface:        #1F2937;
-        --surface2:       #374151;
-        --text:           #F3F4F6;
-        --text-secondary: #9CA3AF;
-        --border:         #374151;
-        --sidebar-bg:     #1F2937;
-        --sidebar-text:   #9CA3AF;
-        --sidebar-active: #818CF8;
-        --sidebar-active-bg: #1E1B4B;
-      }
+      /* Glass palette — works over dark photo backgrounds */
+      --glass-bg:      rgba(10, 10, 15, 0.60);
+      --glass-surface: rgba(255, 255, 255, 0.07);
+      --glass-border:  rgba(255, 255, 255, 0.12);
+      --text:          #F3F4F6;
+      --text-secondary:#9CA3AF;
+      --primary:       #818CF8;
+      --primary-light: rgba(129, 140, 248, 0.15);
+      --secondary:     #F472B6;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Slideshow background ── */
     body {
       font-family: var(--font);
-      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-slideshow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    .bg-slide {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center top;
+      opacity: 0;
+      transition: opacity 1.4s ease-in-out;
+    }
+    .bg-slide.active { opacity: 1; }
+    /* dark overlay so text is always readable */
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.55) 0%,
+        rgba(0,0,0,0.30) 40%,
+        rgba(0,0,0,0.65) 100%
+      );
+    }
+
+    /* everything above the background */
+    .app-wrap {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     /* ── Header ── */
     .app-header {
-      background: var(--sidebar-bg);
-      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
       padding: 0 24px;
       height: 60px;
       display: flex;
@@ -76,40 +89,24 @@
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 10;
     }
     .header-logo {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .header-logo .rose-icon {
-      width: 28px;
-      height: 28px;
-      color: var(--secondary);
-    }
-    .header-logo h1 {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.3px;
-    }
-    .header-logo span {
-      font-size: 11px;
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-    .header-logo .title-group {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
+    .header-logo .rose-icon { width: 26px; height: 26px; color: var(--secondary); }
+    .header-logo h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-logo span { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+    .header-logo .title-group { display: flex; flex-direction: column; line-height: 1.2; }
+
     .header-back {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 13px;
-      color: var(--sidebar-active);
+      color: var(--primary);
       text-decoration: none;
       font-weight: 500;
       padding: 6px 10px;
@@ -119,7 +116,7 @@
     .header-back:hover { background: var(--primary-light); }
     .header-back svg { width: 14px; height: 14px; }
 
-    /* ── Main layout ── */
+    /* ── Main ── */
     .main {
       flex: 1;
       max-width: 780px;
@@ -128,26 +125,26 @@
       width: 100%;
     }
 
-    /* ── Page title ── */
-    .page-title {
-      margin-bottom: 8px;
-    }
+    .page-title { margin-bottom: 8px; }
     .page-title h2 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
-      color: var(--text);
       letter-spacing: -0.5px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
     .page-title p {
       font-size: 14px;
       color: var(--text-secondary);
       margin-top: 4px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
     /* ── Moz-o-meter ── */
     .mozometer {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
       padding: 20px 24px;
       margin: 24px 0;
@@ -156,226 +153,148 @@
       gap: 20px;
     }
     .mozometer-icon {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       background: var(--primary-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       color: var(--primary);
     }
     .mozometer-icon svg { width: 22px; height: 22px; }
     .mozometer-text { flex: 1; }
     .mozometer-text .label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-secondary); margin-bottom: 4px;
     }
-    .mozometer-text .mood {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .mozometer-text .mood-sub {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-    .overall-risk-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-    .overall-risk-badge .big-pct {
-      font-size: 28px;
-      font-weight: 700;
-      line-height: 1;
-    }
+    .mozometer-text .mood { font-size: 15px; font-weight: 600; }
+    .mozometer-text .mood-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .overall-risk-badge { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .overall-risk-badge .big-pct { font-size: 28px; font-weight: 700; line-height: 1; }
     .overall-risk-badge .big-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
       color: var(--text-secondary);
     }
 
     /* ── Section header ── */
     .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 12px;
     }
     .section-header h3 {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+      font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
       color: var(--text-secondary);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
-    .updated-note {
-      font-size: 11px;
-      color: var(--text-secondary);
-    }
+    .updated-note { font-size: 11px; color: var(--text-secondary); }
 
     /* ── Show cards ── */
     .show-list { display: flex; flex-direction: column; gap: 12px; }
 
     .show-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
       padding: 18px 20px;
-      box-shadow: var(--shadow);
-      transition: box-shadow 0.2s, transform 0.15s;
+      transition: background 0.2s, transform 0.15s;
     }
     .show-card:hover {
-      box-shadow: var(--shadow-lg);
+      background: rgba(10,10,15,0.72);
       transform: translateY(-1px);
     }
-    .show-card.tbc {
-      opacity: 0.6;
-      border-style: dashed;
-      box-shadow: none;
-    }
-    .show-card.tbc:hover { transform: none; box-shadow: none; }
+    .show-card.tbc { opacity: 0.5; border-style: dashed; }
+    .show-card.tbc:hover { transform: none; background: var(--glass-bg); }
 
     .show-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px;
     }
     .show-date-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      display: flex; flex-direction: column; align-items: center;
       background: var(--primary-light);
       color: var(--primary);
       border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      min-width: 52px;
-      flex-shrink: 0;
-      text-align: center;
+      padding: 8px 12px; min-width: 52px; flex-shrink: 0; text-align: center;
     }
-    .show-date-badge .month {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .show-date-badge .day {
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-    .show-date-badge .year {
-      font-size: 10px;
-      font-weight: 500;
-      opacity: 0.7;
-    }
+    .show-date-badge .month { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .show-date-badge .day   { font-size: 22px; font-weight: 700; line-height: 1.1; }
+    .show-date-badge .year  { font-size: 10px; font-weight: 500; opacity: 0.7; }
 
     .show-info { flex: 1; }
-    .show-info .venue {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 3px;
-    }
+    .show-info .venue { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
     .show-info .location {
-      font-size: 13px;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      font-size: 13px; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 4px;
     }
     .show-info .location svg { width: 12px; height: 12px; flex-shrink: 0; }
 
-    .risk-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      flex-shrink: 0;
-    }
-    .risk-pct {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1;
-    }
-    .risk-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
+    .risk-badge { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+    .risk-pct   { font-size: 20px; font-weight: 700; line-height: 1; }
+    .risk-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 
     .show-bottom { margin-top: 14px; }
     .risk-bar-wrap {
-      height: 6px;
-      background: var(--surface2);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 8px;
+      height: 5px; background: rgba(255,255,255,0.12);
+      border-radius: 99px; overflow: hidden; margin-bottom: 8px;
     }
     .risk-bar-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 100%; border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
     }
 
-    .risk-factors {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .risk-factors { display: flex; flex-wrap: wrap; gap: 6px; }
     .risk-chip {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 99px;
-      font-weight: 500;
-      border: 1px solid transparent;
+      font-size: 11px; padding: 3px 8px;
+      border-radius: 99px; font-weight: 500; border: 1px solid transparent;
     }
-    .risk-chip.bad  { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
-    .risk-chip.good { background: #F0FDF4; color: #166534; border-color: #BBF7D0; }
-    .risk-chip.neutral { background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
-
-    @media (prefers-color-scheme: dark) {
-      .risk-chip.bad  { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
-      .risk-chip.good { background: #052e16; color: #86efac; border-color: #14532d; }
-    }
+    .risk-chip.bad     { background: rgba(239,68,68,0.15);  color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+    .risk-chip.good    { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }
+    .risk-chip.neutral { background: rgba(255,255,255,0.08); color: var(--text-secondary); border-color: var(--glass-border); }
 
     /* ── Disclaimer ── */
     .disclaimer {
       margin-top: 32px;
       padding: 16px 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.6;
+      font-size: 12px; color: var(--text-secondary); line-height: 1.6;
     }
     .disclaimer strong { color: var(--text); }
+
+    /* ── Photo credit ── */
+    .photo-credit {
+      position: fixed;
+      bottom: 48px;
+      right: 16px;
+      z-index: 3;
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      text-align: right;
+      pointer-events: none;
+    }
 
     /* ── Footer ── */
     footer {
       text-align: center;
-      padding: 16px;
+      padding: 14px;
       font-size: 12px;
       color: var(--text-secondary);
-      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--glass-border);
     }
     footer a { color: var(--primary); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
-    /* ── Risk color helpers ── */
+    /* ── Risk colour helpers ── */
     .low    { color: var(--risk-low); }
     .medium { color: var(--risk-medium); }
     .high   { color: var(--risk-high); }
@@ -386,91 +305,142 @@
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="app-header">
-    <div class="header-logo">
-      <!-- Rose SVG icon -->
-      <svg class="rose-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22V12"/>
-        <path d="M12 12C12 12 7 10 7 6a5 5 0 0110 0c0 4-5 6-5 6z"/>
-        <path d="M9 16c0 0-2-1-2-3"/>
-        <path d="M15 16c0 0 2-1 2-3"/>
-        <path d="M10 20c0 0 0 2 2 2s2-2 2-2"/>
-      </svg>
-      <div class="title-group">
-        <h1>Moz Tracker</h1>
-        <span>Will he actually show up?</span>
-      </div>
-    </div>
-    <a href="https://klm-snyk.github.io/UseYourTools/" class="header-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      UseYourTools
-    </a>
-  </header>
+  <!-- Slideshow background -->
+  <div class="bg-slideshow" id="bg-slideshow"></div>
+  <div class="bg-overlay"></div>
 
-  <!-- Main -->
-  <main class="main">
+  <div class="app-wrap">
 
-    <div class="page-title">
-      <h2>Upcoming Shows</h2>
-      <p>Next 5 Morrissey concerts — with statistically dubious cancellation forecasts.</p>
-    </div>
-
-    <!-- Moz-o-meter -->
-    <div class="mozometer" id="mozometer">
-      <div class="mozometer-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
-          <line x1="9" y1="9" x2="9.01" y2="9"/>
-          <line x1="15" y1="9" x2="15.01" y2="9"/>
+    <header class="app-header">
+      <div class="header-logo">
+        <svg class="rose-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22V12"/>
+          <path d="M12 12C12 12 7 10 7 6a5 5 0 0110 0c0 4-5 6-5 6z"/>
+          <path d="M9 16c0 0-2-1-2-3"/>
+          <path d="M15 16c0 0 2-1 2-3"/>
+          <path d="M10 20c0 0 0 2 2 2s2-2 2-2"/>
         </svg>
+        <div class="title-group">
+          <h1>Moz Tracker</h1>
+          <span>Will he actually show up?</span>
+        </div>
       </div>
-      <div class="mozometer-text">
-        <div class="label">Current Tour Vibe</div>
-        <div class="mood" id="mood-text">Cautiously optimistic</div>
-        <div class="mood-sub" id="mood-sub">He hasn't quit yet this month</div>
+      <a href="https://klm-snyk.github.io/UseYourTools/" class="header-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        UseYourTools
+      </a>
+    </header>
+
+    <main class="main">
+
+      <div class="page-title">
+        <h2>Upcoming Shows</h2>
+        <p>Next 5 Morrissey concerts — with statistically dubious cancellation forecasts.</p>
       </div>
-      <div class="overall-risk-badge">
-        <div class="big-pct" id="overall-pct">—</div>
-        <div class="big-label">Avg. Cancel Risk</div>
+
+      <div class="mozometer" id="mozometer">
+        <div class="mozometer-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+            <line x1="9" y1="9" x2="9.01" y2="9"/>
+            <line x1="15" y1="9" x2="15.01" y2="9"/>
+          </svg>
+        </div>
+        <div class="mozometer-text">
+          <div class="label">Current Tour Vibe</div>
+          <div class="mood" id="mood-text">Cautiously optimistic</div>
+          <div class="mood-sub" id="mood-sub">Tour is proceeding. For now.</div>
+        </div>
+        <div class="overall-risk-badge">
+          <div class="big-pct" id="overall-pct">—</div>
+          <div class="big-label">Avg. Cancel Risk</div>
+        </div>
       </div>
-    </div>
 
-    <!-- Show list -->
-    <div class="section-header">
-      <h3>Confirmed Shows</h3>
-      <span class="updated-note" id="updated-note"></span>
-    </div>
+      <div class="section-header">
+        <h3>Confirmed Shows</h3>
+        <span class="updated-note" id="updated-note"></span>
+      </div>
 
-    <div class="show-list" id="show-list"></div>
+      <div class="show-list" id="show-list"></div>
 
-    <!-- Disclaimer -->
-    <div class="disclaimer">
-      <strong>How is cancellation risk calculated?</strong><br>
-      Based on Morrissey's documented cancellation history (~35% of announced shows), weighted by proximity to the show date, geographic region, and a proprietary "Moz Mood Index" derived from absolutely nothing scientific. For entertainment only. Tickets are non-refundable — which is on you, really.
-    </div>
+      <div class="disclaimer">
+        <strong>How is cancellation risk calculated?</strong><br>
+        Based on Morrissey's documented cancellation history (~35% of announced shows), weighted by
+        proximity to the show date, geographic region, and a proprietary "Moz Mood Index" derived
+        from absolutely nothing scientific. For entertainment only. Tickets are non-refundable —
+        which is on you, really.
+      </div>
 
-  </main>
+    </main>
 
-  <footer>
-    Part of <a href="https://klm-snyk.github.io/UseYourTools/">UseYourTools for Work</a> &mdash;
-    show data sourced from <a href="https://www.setlist.fm/search?query=morrissey" target="_blank">setlist.fm</a>
-  </footer>
+    <footer>
+      Part of <a href="https://klm-snyk.github.io/UseYourTools/">UseYourTools for Work</a> &mdash;
+      show data from <a href="https://www.setlist.fm/search?query=morrissey" target="_blank">setlist.fm</a> &mdash;
+      photos via <a href="https://commons.wikimedia.org/wiki/Category:Morrissey" target="_blank">Wikimedia Commons</a> (CC)
+    </footer>
+
+  </div><!-- /app-wrap -->
+
+  <div class="photo-credit" id="photo-credit"></div>
 
   <script>
-    // ── Show data ──────────────────────────────────────────────────────────
-    // Update this array as new shows are announced.
-    // riskFactors: array of { label, type: 'bad'|'good'|'neutral' }
+    // ── Background photos (Wikimedia Commons, CC licensed) ─────────────────
+    const photos = [
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Morrissey_Hop_Farm_Music_Festival.jpg',
+        credit: 'Hop Farm Music Festival'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Morrissey_Live_at_Wembley_in_December_2006.jpg',
+        credit: 'Wembley Arena, 2006'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Morrissey_at_Zitadelle_Spandau_in_Berlin_2011.jpg',
+        credit: 'Zitadelle Spandau, Berlin 2011'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Morrissey_and_band_at_Zitadelle_Spandau_in_Berlin_2011.jpg',
+        credit: 'Zitadelle Spandau, Berlin 2011'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/8/86/Morrissey_copenhagen_2014.jpg',
+        credit: 'Copenhagen, 2014'
+      },
+    ];
+
+    let currentSlide = 0;
+    const slideshowEl = document.getElementById('bg-slideshow');
+    const creditEl    = document.getElementById('photo-credit');
+
+    // Build slide divs
+    const slides = photos.map((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'bg-slide' + (i === 0 ? ' active' : '');
+      div.style.backgroundImage = `url('${p.url}')`;
+      slideshowEl.appendChild(div);
+      return div;
+    });
+
+    function nextSlide() {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+      creditEl.textContent = photos[currentSlide].credit;
+    }
+
+    creditEl.textContent = photos[0].credit;
+    setInterval(nextSlide, 6000);
+
+    // ── Show data ───────────────────────────────────────────────────────────
     const shows = [
       {
         date: '2026-06-27',
         venue: 'Nova Spektrum',
-        city: 'Lillestrøm',
-        country: 'Norway',
-        flag: '🇳🇴',
+        city: 'Lillestrøm', country: 'Norway', flag: '🇳🇴',
         riskFactors: [
           { label: 'Scandinavia shows rarely cancelled', type: 'good' },
           { label: '17 days away', type: 'neutral' },
@@ -480,9 +450,7 @@
       {
         date: '2026-07-01',
         venue: 'Dalhalla',
-        city: 'Rättvik',
-        country: 'Sweden',
-        flag: '🇸🇪',
+        city: 'Rättvik', country: 'Sweden', flag: '🇸🇪',
         riskFactors: [
           { label: 'Iconic outdoor amphitheatre', type: 'good' },
           { label: 'Morrissey loves dramatic settings', type: 'good' },
@@ -492,114 +460,66 @@
       {
         date: '2026-07-04',
         venue: 'Partille Arena',
-        city: 'Partille (Gothenburg)',
-        country: 'Sweden',
-        flag: '🇸🇪',
+        city: 'Partille (Gothenburg)', country: 'Sweden', flag: '🇸🇪',
         riskFactors: [
           { label: 'Indoor arena — lower weather risk', type: 'good' },
           { label: '3 days after Dalhalla — fatigue risk', type: 'bad' },
           { label: 'Back-to-back shows historically risky', type: 'bad' },
         ]
       },
-      {
-        date: null,
-        venue: 'TBA',
-        city: 'To be announced',
-        country: '',
-        flag: '❓',
-        tbc: true,
-        riskFactors: [
-          { label: 'No show announced yet', type: 'neutral' },
-        ]
-      },
-      {
-        date: null,
-        venue: 'TBA',
-        city: 'To be announced',
-        country: '',
-        flag: '❓',
-        tbc: true,
-        riskFactors: [
-          { label: 'No show announced yet', type: 'neutral' },
-        ]
-      },
+      { date: null, venue: 'TBA', city: 'To be announced', country: '', flag: '❓', tbc: true,
+        riskFactors: [{ label: 'No show announced yet', type: 'neutral' }] },
+      { date: null, venue: 'TBA', city: 'To be announced', country: '', flag: '❓', tbc: true,
+        riskFactors: [{ label: 'No show announced yet', type: 'neutral' }] },
     ];
 
-    // ── Cancellation risk calculator ──────────────────────────────────────
+    // ── Risk calculator ─────────────────────────────────────────────────────
     function calcRisk(show) {
       if (show.tbc) return null;
-
       const now = new Date();
-      const showDate = new Date(show.date);
+      const showDate = new Date(show.date + 'T12:00:00');
       const daysUntil = Math.round((showDate - now) / 86400000);
-
-      // Base rate: Morrissey historically cancels ~35% of shows
       let risk = 35;
-
-      // Proximity modifier
-      if (daysUntil > 180)      risk += 22;  // lots of time to change his mind
+      if      (daysUntil > 180) risk += 22;
       else if (daysUntil > 90)  risk += 14;
       else if (daysUntil > 30)  risk += 6;
-      else if (daysUntil > 7)   risk += 0;
-      else if (daysUntil >= 0)  risk -= 10;  // imminent — probably locked in
-
-      // Region modifier
-      const c = show.country;
-      if (['Norway', 'Sweden', 'Denmark', 'Finland', 'Iceland'].includes(c)) risk -= 8;
-      if (['UK', 'United Kingdom', 'England'].includes(c)) risk += 12;
-      if (['USA', 'United States'].includes(c)) risk += 8;
-
-      // Consecutive shows penalty (check if previous show within 5 days)
-      const showIdx = shows.indexOf(show);
-      if (showIdx > 0 && shows[showIdx - 1].date) {
-        const prev = new Date(shows[showIdx - 1].date);
+      else if (daysUntil >= 0)  risk += 0;
+      else                      risk -= 10;
+      if (['Norway','Sweden','Denmark','Finland','Iceland'].includes(show.country)) risk -= 8;
+      if (['UK','United Kingdom','England'].includes(show.country)) risk += 12;
+      if (['USA','United States'].includes(show.country)) risk += 8;
+      const idx = shows.indexOf(show);
+      if (idx > 0 && shows[idx - 1].date) {
+        const prev = new Date(shows[idx - 1].date + 'T12:00:00');
         if ((showDate - prev) / 86400000 < 5) risk += 14;
       }
-
-      // Add a deterministic "Moz noise" so each show feels individual
-      // (seeded by show date — not random each load)
       const seed = showDate.getDate() + showDate.getMonth() * 3;
-      risk += ((seed % 7) - 3);  // ±3 pts
-
+      risk += ((seed % 7) - 3);
       return Math.max(5, Math.min(92, Math.round(risk)));
     }
 
-    function riskClass(pct) {
-      if (pct === null) return 'neutral';
-      if (pct < 33) return 'low';
-      if (pct < 60) return 'medium';
-      return 'high';
-    }
-
-    function riskFillClass(pct) {
-      if (pct < 33) return 'fill-low';
-      if (pct < 60) return 'fill-medium';
-      return 'fill-high';
-    }
-
-    function riskWord(pct) {
-      if (pct < 20) return 'Very Low';
-      if (pct < 33) return 'Low';
-      if (pct < 50) return 'Moderate';
-      if (pct < 65) return 'High';
-      if (pct < 80) return 'Very High';
+    function riskClass(p)     { return p < 33 ? 'low' : p < 60 ? 'medium' : 'high'; }
+    function riskFillClass(p) { return p < 33 ? 'fill-low' : p < 60 ? 'fill-medium' : 'fill-high'; }
+    function riskWord(p) {
+      if (p < 20) return 'Very Low';
+      if (p < 33) return 'Low';
+      if (p < 50) return 'Moderate';
+      if (p < 65) return 'High';
+      if (p < 80) return 'Very High';
       return 'Almost Certain';
     }
-
-    function formatDate(dateStr) {
-      const d = new Date(dateStr + 'T12:00:00');
+    function formatDate(s) {
+      const d = new Date(s + 'T12:00:00');
       return {
         month: d.toLocaleString('en-GB', { month: 'short' }).toUpperCase(),
-        day:   d.getDate(),
-        year:  d.getFullYear(),
+        day: d.getDate(), year: d.getFullYear()
       };
     }
 
-    // ── Render ─────────────────────────────────────────────────────────────
+    // ── Render ──────────────────────────────────────────────────────────────
     function render() {
       const list = document.getElementById('show-list');
       list.innerHTML = '';
-
       const validRisks = [];
 
       shows.forEach(show => {
@@ -612,36 +532,28 @@
         let dateHtml;
         if (show.date) {
           const { month, day, year } = formatDate(show.date);
-          dateHtml = `
-            <div class="show-date-badge">
-              <span class="month">${month}</span>
-              <span class="day">${day}</span>
-              <span class="year">${year}</span>
-            </div>`;
+          dateHtml = `<div class="show-date-badge">
+            <span class="month">${month}</span>
+            <span class="day">${day}</span>
+            <span class="year">${year}</span>
+          </div>`;
         } else {
-          dateHtml = `
-            <div class="show-date-badge" style="font-size:22px; padding:8px;">
-              ❓
-            </div>`;
+          dateHtml = `<div class="show-date-badge" style="font-size:22px;padding:8px;">❓</div>`;
         }
 
-        const riskHtml = risk !== null ? `
-          <div class="risk-badge">
-            <span class="risk-pct ${riskClass(risk)}">${risk}%</span>
-            <span class="risk-label ${riskClass(risk)}">${riskWord(risk)}</span>
-          </div>` : `
-          <div class="risk-badge">
-            <span class="risk-pct" style="color:var(--text-secondary)">—</span>
-            <span class="risk-label" style="color:var(--text-secondary)">Unknown</span>
-          </div>`;
+        const riskHtml = risk !== null
+          ? `<div class="risk-badge">
+               <span class="risk-pct ${riskClass(risk)}">${risk}%</span>
+               <span class="risk-label ${riskClass(risk)}">${riskWord(risk)}</span>
+             </div>`
+          : `<div class="risk-badge">
+               <span class="risk-pct" style="color:var(--text-secondary)">—</span>
+               <span class="risk-label" style="color:var(--text-secondary)">Unknown</span>
+             </div>`;
 
-        const barHtml = risk !== null ? `
-          <div class="risk-bar-wrap">
-            <div class="risk-bar-fill ${riskFillClass(risk)}" style="width:${risk}%"></div>
-          </div>` : `
-          <div class="risk-bar-wrap">
-            <div class="risk-bar-fill" style="width:0%;background:var(--surface2)"></div>
-          </div>`;
+        const barHtml = `<div class="risk-bar-wrap">
+          <div class="risk-bar-fill ${risk ? riskFillClass(risk) : ''}" style="width:${risk || 0}%"></div>
+        </div>`;
 
         const chipsHtml = show.riskFactors.map(f =>
           `<span class="risk-chip ${f.type}">${f.label}</span>`
@@ -665,38 +577,34 @@
           <div class="show-bottom">
             ${barHtml}
             <div class="risk-factors">${chipsHtml}</div>
-          </div>
-        `;
+          </div>`;
 
         list.appendChild(card);
       });
 
-      // Overall average
       if (validRisks.length > 0) {
         const avg = Math.round(validRisks.reduce((a, b) => a + b, 0) / validRisks.length);
         const el = document.getElementById('overall-pct');
         el.textContent = avg + '%';
         el.className = `big-pct ${riskClass(avg)}`;
 
-        // Mood text
-        const mood = document.getElementById('mood-text');
+        const mood    = document.getElementById('mood-text');
         const moodSub = document.getElementById('mood-sub');
         if (avg < 30) {
-          mood.textContent = 'Suspiciously committed';
-          moodSub.textContent = 'Something\'s up. This never happens.';
+          mood.textContent    = 'Suspiciously committed';
+          moodSub.textContent = "Something's up. This never happens.";
         } else if (avg < 45) {
-          mood.textContent = 'Cautiously optimistic';
+          mood.textContent    = 'Cautiously optimistic';
           moodSub.textContent = 'Tour is proceeding. For now.';
         } else if (avg < 60) {
-          mood.textContent = 'Could go either way';
+          mood.textContent    = 'Could go either way';
           moodSub.textContent = 'Buy travel insurance. Seriously.';
         } else {
-          mood.textContent = 'This is not looking good';
+          mood.textContent    = 'This is not looking good';
           moodSub.textContent = 'Maybe just stream the Smiths instead.';
         }
       }
 
-      // Updated note
       document.getElementById('updated-note').textContent =
         'Last updated ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     }
