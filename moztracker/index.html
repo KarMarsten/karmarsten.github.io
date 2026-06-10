@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moz Tracker — Will He Show Up?</title>
+  <meta name="description" content="Track upcoming Morrissey shows and the likelihood he'll actually turn up.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --risk-low:    #10B981;
+      --risk-medium: #F59E0B;
+      --risk-high:   #EF4444;
+      /* Glass palette — works over dark photo backgrounds */
+      --glass-bg:      rgba(10, 10, 15, 0.60);
+      --glass-surface: rgba(255, 255, 255, 0.07);
+      --glass-border:  rgba(255, 255, 255, 0.12);
+      --text:          #F3F4F6;
+      --text-secondary:#9CA3AF;
+      --primary:       #818CF8;
+      --primary-light: rgba(129, 140, 248, 0.15);
+      --secondary:     #F472B6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Slideshow background ── */
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-slideshow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    .bg-slide {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center top;
+      opacity: 0;
+      transition: opacity 1.4s ease-in-out;
+    }
+    .bg-slide.active { opacity: 1; }
+    /* dark overlay so text is always readable */
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.55) 0%,
+        rgba(0,0,0,0.30) 40%,
+        rgba(0,0,0,0.65) 100%
+      );
+    }
+
+    /* everything above the background */
+    .app-wrap {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-logo .rose-icon { width: 26px; height: 26px; color: var(--secondary); }
+    .header-logo h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-logo span { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+    .header-logo .title-group { display: flex; flex-direction: column; line-height: 1.2; }
+
+    .header-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s;
+    }
+    .header-back:hover { background: var(--primary-light); }
+    .header-back svg { width: 14px; height: 14px; }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+      width: 100%;
+    }
+
+    .page-title { margin-bottom: 8px; }
+    .page-title h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .page-title p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+
+    /* ── Moz-o-meter ── */
+    .mozometer {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .mozometer-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--primary);
+    }
+    .mozometer-icon svg { width: 22px; height: 22px; }
+    .mozometer-text { flex: 1; }
+    .mozometer-text .label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-secondary); margin-bottom: 4px;
+    }
+    .mozometer-text .mood { font-size: 15px; font-weight: 600; }
+    .mozometer-text .mood-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .overall-risk-badge { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .overall-risk-badge .big-pct { font-size: 28px; font-weight: 700; line-height: 1; }
+    .overall-risk-badge .big-label {
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-header h3 {
+      font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-secondary);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .updated-note { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Show cards ── */
+    .show-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .show-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .show-card:hover {
+      background: rgba(10,10,15,0.72);
+      transform: translateY(-1px);
+    }
+    .show-card.tbc { opacity: 0.5; border-style: dashed; }
+    .show-card.tbc:hover { transform: none; background: var(--glass-bg); }
+
+    .show-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px;
+    }
+    .show-date-badge {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px; min-width: 52px; flex-shrink: 0; text-align: center;
+    }
+    .show-date-badge .month { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .show-date-badge .day   { font-size: 22px; font-weight: 700; line-height: 1.1; }
+    .show-date-badge .year  { font-size: 10px; font-weight: 500; opacity: 0.7; }
+
+    .show-info { flex: 1; }
+    .show-info .venue { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .show-info .location {
+      font-size: 13px; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .show-info .location svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .risk-badge { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+    .risk-pct   { font-size: 20px; font-weight: 700; line-height: 1; }
+    .risk-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .show-bottom { margin-top: 14px; }
+    .risk-bar-wrap {
+      height: 5px; background: rgba(255,255,255,0.12);
+      border-radius: 99px; overflow: hidden; margin-bottom: 8px;
+    }
+    .risk-bar-fill {
+      height: 100%; border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .risk-factors { display: flex; flex-wrap: wrap; gap: 6px; }
+    .risk-chip {
+      font-size: 11px; padding: 3px 8px;
+      border-radius: 99px; font-weight: 500; border: 1px solid transparent;
+    }
+    .risk-chip.bad     { background: rgba(239,68,68,0.15);  color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+    .risk-chip.good    { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }
+    .risk-chip.neutral { background: rgba(255,255,255,0.08); color: var(--text-secondary); border-color: var(--glass-border); }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      margin-top: 32px;
+      padding: 16px 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      font-size: 12px; color: var(--text-secondary); line-height: 1.6;
+    }
+    .disclaimer strong { color: var(--text); }
+
+    /* ── Photo credit ── */
+    .photo-credit {
+      position: fixed;
+      bottom: 48px;
+      right: 16px;
+      z-index: 3;
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      text-align: right;
+      pointer-events: none;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--glass-border);
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Risk colour helpers ── */
+    .low    { color: var(--risk-low); }
+    .medium { color: var(--risk-medium); }
+    .high   { color: var(--risk-high); }
+    .fill-low    { background: var(--risk-low); }
+    .fill-medium { background: var(--risk-medium); }
+    .fill-high   { background: var(--risk-high); }
+  </style>
+</head>
+<body>
+
+  <!-- Slideshow background -->
+  <div class="bg-slideshow" id="bg-slideshow"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="app-wrap">
+
+    <header class="app-header">
+      <div class="header-logo">
+        <svg class="rose-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22V12"/>
+          <path d="M12 12C12 12 7 10 7 6a5 5 0 0110 0c0 4-5 6-5 6z"/>
+          <path d="M9 16c0 0-2-1-2-3"/>
+          <path d="M15 16c0 0 2-1 2-3"/>
+          <path d="M10 20c0 0 0 2 2 2s2-2 2-2"/>
+        </svg>
+        <div class="title-group">
+          <h1>Moz Tracker</h1>
+          <span>Will he actually show up?</span>
+        </div>
+      </div>
+      <a href="https://klm-snyk.github.io" class="header-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        klm-snyk.github.io
+      </a>
+    </header>
+
+    <main class="main">
+
+      <div class="page-title">
+        <h2>Upcoming Shows</h2>
+        <p>Next 5 Morrissey concerts — with statistically dubious cancellation forecasts.</p>
+      </div>
+
+      <div class="mozometer" id="mozometer">
+        <div class="mozometer-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 15s1.5 2 4 2 4-2 4-2"/>
+            <line x1="9" y1="9" x2="9.01" y2="9"/>
+            <line x1="15" y1="9" x2="15.01" y2="9"/>
+          </svg>
+        </div>
+        <div class="mozometer-text">
+          <div class="label">Current Tour Vibe</div>
+          <div class="mood" id="mood-text">Cautiously optimistic</div>
+          <div class="mood-sub" id="mood-sub">Tour is proceeding. For now.</div>
+        </div>
+        <div class="overall-risk-badge">
+          <div class="big-pct" id="overall-pct">—</div>
+          <div class="big-label">Avg. Cancel Risk</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h3>Confirmed Shows</h3>
+        <span class="updated-note" id="updated-note"></span>
+      </div>
+
+      <div class="show-list" id="show-list"></div>
+
+      <div class="disclaimer">
+        <strong>How is cancellation risk calculated?</strong><br>
+        Based on Morrissey's documented cancellation history (~35% of announced shows), weighted by
+        proximity to the show date, geographic region, and a proprietary "Moz Mood Index" derived
+        from absolutely nothing scientific. For entertainment only. Tickets are non-refundable —
+        which is on you, really.
+      </div>
+
+    </main>
+
+    <footer>
+      Show data from <a href="https://www.setlist.fm/search?query=morrissey" target="_blank">setlist.fm</a> &amp;
+      <a href="https://www.ticketmaster.com" target="_blank">Ticketmaster</a> &mdash;
+      photos via <a href="https://commons.wikimedia.org/wiki/Category:Morrissey" target="_blank">Wikimedia Commons</a> (CC)
+    </footer>
+
+  </div><!-- /app-wrap -->
+
+  <div class="photo-credit" id="photo-credit"></div>
+
+  <script>
+    // ── Background photos (Wikimedia Commons, CC licensed) ─────────────────
+    const photos = [
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Morrissey_Hop_Farm_Music_Festival.jpg',
+        credit: 'Hop Farm Music Festival'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Morrissey_Live_at_Wembley_in_December_2006.jpg',
+        credit: 'Wembley Arena, 2006'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Morrissey_at_Zitadelle_Spandau_in_Berlin_2011.jpg',
+        credit: 'Zitadelle Spandau, Berlin 2011'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Morrissey_and_band_at_Zitadelle_Spandau_in_Berlin_2011.jpg',
+        credit: 'Zitadelle Spandau, Berlin 2011'
+      },
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/8/86/Morrissey_copenhagen_2014.jpg',
+        credit: 'Copenhagen, 2014'
+      },
+    ];
+
+    let currentSlide = 0;
+    const slideshowEl = document.getElementById('bg-slideshow');
+    const creditEl    = document.getElementById('photo-credit');
+
+    // Build slide divs
+    const slides = photos.map((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'bg-slide' + (i === 0 ? ' active' : '');
+      div.style.backgroundImage = `url('${p.url}')`;
+      slideshowEl.appendChild(div);
+      return div;
+    });
+
+    function nextSlide() {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+      creditEl.textContent = photos[currentSlide].credit;
+    }
+
+    creditEl.textContent = photos[0].credit;
+    setInterval(nextSlide, 6000);
+
+    // ── Show data ───────────────────────────────────────────────────────────
+    const shows = [
+      {
+        date: '2026-06-27',
+        venue: 'Nova Spektrum',
+        city: 'Lillestrøm', country: 'Norway', flag: '🇳🇴',
+        riskFactors: [
+          { label: 'Scandinavia shows rarely cancelled', type: 'good' },
+          { label: '17 days away', type: 'neutral' },
+          { label: 'Outdoor festival context', type: 'neutral' },
+        ]
+      },
+      {
+        date: '2026-07-01',
+        venue: 'Dalhalla',
+        city: 'Rättvik', country: 'Sweden', flag: '🇸🇪',
+        riskFactors: [
+          { label: 'Iconic outdoor amphitheatre', type: 'good' },
+          { label: 'Morrissey loves dramatic settings', type: 'good' },
+          { label: '21 days away', type: 'neutral' },
+        ]
+      },
+      {
+        date: '2026-07-04',
+        venue: 'Partille Arena',
+        city: 'Partille (Gothenburg)', country: 'Sweden', flag: '🇸🇪',
+        riskFactors: [
+          { label: 'Indoor arena — lower weather risk', type: 'good' },
+          { label: '3 days after Dalhalla — fatigue risk', type: 'bad' },
+          { label: 'Back-to-back shows historically risky', type: 'bad' },
+        ]
+      },
+      {
+        date: '2026-08-14',
+        venue: 'Encore Theater at Wynn Las Vegas',
+        city: 'Las Vegas', country: 'USA', flag: '🇺🇸',
+        riskFactors: [
+          { label: '4-night residency run', type: 'bad' },
+          { label: 'One Rancho Mirage date already postponed', type: 'bad' },
+          { label: 'US shows historically higher risk', type: 'bad' },
+        ]
+      },
+      {
+        date: '2026-09-30',
+        venue: 'Lowell Memorial Auditorium',
+        city: 'Lowell, MA', country: 'USA', flag: '🇺🇸',
+        riskFactors: [
+          { label: 'US shows historically higher risk', type: 'bad' },
+          { label: 'Theatre venue — intimate setting', type: 'good' },
+          { label: 'Greater Boston area', type: 'neutral' },
+        ]
+      },
+    ];
+
+    // ── Risk calculator ─────────────────────────────────────────────────────
+    function calcRisk(show) {
+      if (show.tbc) return null;
+      const now = new Date();
+      const showDate = new Date(show.date + 'T12:00:00');
+      const daysUntil = Math.round((showDate - now) / 86400000);
+      let risk = 35;
+      if      (daysUntil > 180) risk += 22;
+      else if (daysUntil > 90)  risk += 14;
+      else if (daysUntil > 30)  risk += 6;
+      else if (daysUntil >= 0)  risk += 0;
+      else                      risk -= 10;
+      if (['Norway','Sweden','Denmark','Finland','Iceland'].includes(show.country)) risk -= 8;
+      if (['UK','United Kingdom','England'].includes(show.country)) risk += 12;
+      if (['USA','United States'].includes(show.country)) risk += 8;
+      const idx = shows.indexOf(show);
+      if (idx > 0 && shows[idx - 1].date) {
+        const prev = new Date(shows[idx - 1].date + 'T12:00:00');
+        if ((showDate - prev) / 86400000 < 5) risk += 14;
+      }
+      const seed = showDate.getDate() + showDate.getMonth() * 3;
+      risk += ((seed % 7) - 3);
+      return Math.max(5, Math.min(92, Math.round(risk)));
+    }
+
+    function riskClass(p)     { return p < 33 ? 'low' : p < 60 ? 'medium' : 'high'; }
+    function riskFillClass(p) { return p < 33 ? 'fill-low' : p < 60 ? 'fill-medium' : 'fill-high'; }
+    function riskWord(p) {
+      if (p < 20) return 'Very Low';
+      if (p < 33) return 'Low';
+      if (p < 50) return 'Moderate';
+      if (p < 65) return 'High';
+      if (p < 80) return 'Very High';
+      return 'Almost Certain';
+    }
+    function formatDate(s) {
+      const d = new Date(s + 'T12:00:00');
+      return {
+        month: d.toLocaleString('en-GB', { month: 'short' }).toUpperCase(),
+        day: d.getDate(), year: d.getFullYear()
+      };
+    }
+
+    // ── Render ──────────────────────────────────────────────────────────────
+    function render() {
+      const list = document.getElementById('show-list');
+      list.innerHTML = '';
+      const validRisks = [];
+
+      shows.forEach(show => {
+        const risk = calcRisk(show);
+        if (risk !== null) validRisks.push(risk);
+
+        const card = document.createElement('div');
+        card.className = 'show-card' + (show.tbc ? ' tbc' : '');
+
+        let dateHtml;
+        if (show.date) {
+          const { month, day, year } = formatDate(show.date);
+          dateHtml = `<div class="show-date-badge">
+            <span class="month">${month}</span>
+            <span class="day">${day}</span>
+            <span class="year">${year}</span>
+          </div>`;
+        } else {
+          dateHtml = `<div class="show-date-badge" style="font-size:22px;padding:8px;">❓</div>`;
+        }
+
+        const riskHtml = risk !== null
+          ? `<div class="risk-badge">
+               <span class="risk-pct ${riskClass(risk)}">${risk}%</span>
+               <span class="risk-label ${riskClass(risk)}">${riskWord(risk)}</span>
+             </div>`
+          : `<div class="risk-badge">
+               <span class="risk-pct" style="color:var(--text-secondary)">—</span>
+               <span class="risk-label" style="color:var(--text-secondary)">Unknown</span>
+             </div>`;
+
+        const barHtml = `<div class="risk-bar-wrap">
+          <div class="risk-bar-fill ${risk ? riskFillClass(risk) : ''}" style="width:${risk || 0}%"></div>
+        </div>`;
+
+        const chipsHtml = show.riskFactors.map(f =>
+          `<span class="risk-chip ${f.type}">${f.label}</span>`
+        ).join('');
+
+        card.innerHTML = `
+          <div class="show-top">
+            ${dateHtml}
+            <div class="show-info">
+              <div class="venue">${show.venue}</div>
+              <div class="location">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                ${show.flag} ${show.city}${show.country ? ', ' + show.country : ''}
+              </div>
+            </div>
+            ${riskHtml}
+          </div>
+          <div class="show-bottom">
+            ${barHtml}
+            <div class="risk-factors">${chipsHtml}</div>
+          </div>`;
+
+        list.appendChild(card);
+      });
+
+      if (validRisks.length > 0) {
+        const avg = Math.round(validRisks.reduce((a, b) => a + b, 0) / validRisks.length);
+        const el = document.getElementById('overall-pct');
+        el.textContent = avg + '%';
+        el.className = `big-pct ${riskClass(avg)}`;
+
+        const mood    = document.getElementById('mood-text');
+        const moodSub = document.getElementById('mood-sub');
+        if (avg < 30) {
+          mood.textContent    = 'Suspiciously committed';
+          moodSub.textContent = "Something's up. This never happens.";
+        } else if (avg < 45) {
+          mood.textContent    = 'Cautiously optimistic';
+          moodSub.textContent = 'Tour is proceeding. For now.';
+        } else if (avg < 60) {
+          mood.textContent    = 'Could go either way';
+          moodSub.textContent = 'Buy travel insurance. Seriously.';
+        } else {
+          mood.textContent    = 'This is not looking good';
+          moodSub.textContent = 'Maybe just stream the Smiths instead.';
+        }
+      }
+
+      document.getElementById('updated-note').textContent =
+        'Last updated ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    render();
+  </script>
+</body>
+</html>
