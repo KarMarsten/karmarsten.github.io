@@ -10,21 +10,22 @@ A browser-based workday management tool — built for the web from the ground up
 
 UseYourTools for Work gives you a single place to manage your workday:
 
-- **Dashboard** — personalized greeting, live clock, quick access to your planner and caseload, plus a dashboard-level Google sign in/out button
+- **Dashboard** — personalized greeting, live clock, upcoming Google Calendar events, and a daily motivational quote
 - **Daily Planner** — hour-by-hour time blocks for your full workday, notes auto-saved as you type, navigate between days
 - **Cases** — your caseload from JIRA or Salesforce *(integration coming soon)*
 - **Settings** — 5 color themes, dark mode, configurable work hours, 12/24h clock, and integration toggles
 
 ---
 
-## Planned integrations
+## Integrations
 
 | Integration | Status |
 |---|---|
-| Google Calendar / Outlook | Coming soon |
+| Google Calendar | ✅ Working |
 | Gmail | Coming soon |
 | JIRA | Coming soon |
 | Salesforce | Coming soon |
+| Outlook | Coming soon |
 
 ---
 
@@ -47,19 +48,17 @@ npx serve .
 
 ## Google Calendar setup
 
-To connect Google Calendar:
+Calendar connection is handled entirely in the browser via Google OAuth2. To connect:
 
-- Create a Google OAuth Client ID in Google Cloud Console
-- Enable the **Google Calendar API** for that project
-- Add your local origin to the OAuth client:
-  - `http://localhost:3000`
-  - or your actual local host/port if different
-- For production on GitHub Pages, add:
-  - `https://klm-snyk.github.io`
-- In the app Settings, paste your Google Client ID and click **Connect**
-- Use the dashboard sign in/out button to sign in with Google and personalize your profile
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials) and create an OAuth 2.0 Client ID (Web application type)
+2. Enable the **Google Calendar API** and **People API** for that project
+3. Add your authorized origins:
+   - `https://klm-snyk.github.io` (production)
+   - `http://localhost:3000` (or your local port)
+4. In the app Settings, paste your Client ID and click **Connect**
+5. Approve the Google OAuth consent screen — your name and calendar events will load automatically
 
-If Calendar events are not loading, verify that the Calendar API is enabled in the same Google Cloud project as the OAuth client.
+Clicking **Disconnect** in Settings or **Sign out** on the dashboard fully clears your token, profile, and cached events.
 
 ---
 
@@ -79,9 +78,9 @@ Ported directly from the iOS app:
 
 ## Roadmap
 
-- [ ] Calendar screen with Google Calendar / Outlook sync
+- [x] Google Calendar integration
 - [ ] Gmail inbox summary on dashboard
 - [ ] JIRA / Salesforce case list with Kanban view
-- [ ] PDF export for daily schedule and weekly report
+- [ ] PDF export for daily schedule
 - [ ] Event creation and editing
 - [ ] Notifications / reminders
