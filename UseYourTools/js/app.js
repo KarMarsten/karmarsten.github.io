@@ -257,13 +257,6 @@ function renderSettingsPanel() {
       <div class="settings-section-title">Coming Soon</div>
       <div class="settings-row">
         <div class="settings-label">
-          Gmail
-          <span class="settings-sublabel">Inbox summary on dashboard</span>
-        </div>
-        <span style="font-size:11px;color:var(--text-secondary);font-weight:600;background:var(--surface);padding:3px 8px;border-radius:99px">Soon</span>
-      </div>
-      <div class="settings-row">
-        <div class="settings-label">
           Cases
           <span class="settings-sublabel">JIRA or Salesforce caseload</span>
         </div>
@@ -451,6 +444,28 @@ function renderDashboard() {
         <div class="dash-card-value">—</div>
         <div class="dash-card-sub">Connect JIRA or Salesforce to see your caseload</div>
         <div class="dash-card-action">Set up integration ${ICONS.arrowRight}</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <div class="dash-card-icon">${ICONS.calendar}</div>
+          <div class="dash-card-title">Gmail</div>
+        </div>
+        ${!calIsConnected() ? `
+          <div class="dash-card-value">—</div>
+          <div class="dash-card-sub">Connect Google Calendar to also see your unread email count</div>
+        ` : calState.unreadCount === null ? `
+          <div class="dash-card-value">—</div>
+          <div class="dash-card-sub">Loading inbox…</div>
+        ` : calState.unreadCount === 0 ? `
+          <div class="dash-card-value" style="font-size:22px">0 📭</div>
+          <div class="dash-card-sub">Inbox zero. You beautiful, productive human.</div>
+          <div class="dash-card-action"><a href="https://mail.google.com" target="_blank" style="color:inherit;text-decoration:none">Enjoy it while it lasts ${ICONS.arrowRight}</a></div>
+        ` : `
+          <div class="dash-card-value" style="font-size:22px">${calState.unreadCount}</div>
+          <div class="dash-card-sub">unread email${calState.unreadCount === 1 ? '' : 's'} waiting for you</div>
+          <div class="dash-card-action"><a href="https://mail.google.com" target="_blank" style="color:inherit;text-decoration:none">Open Gmail ${ICONS.arrowRight}</a></div>
+        `}
       </div>
 
       <div class="dash-card">
