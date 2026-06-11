@@ -80,14 +80,16 @@ function handleCredentialResponse(response) {
 
   saveUserProfile(userProfile);
 
-  // If a valid calendar token exists, re-fetch events now that user is signed in
   if (calState.token) {
+    // Token still valid — just re-fetch and re-render
     calFetchUpcoming().then(() => {
       if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
       if (typeof renderDashboard === 'function') renderDashboard();
     });
+  } else if (calState.clientId) {
+    // Signed in but no token — auto-request calendar access
+    calConnect();
   } else {
-    // No token yet — prompt the user to reconnect calendar
     if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
     if (typeof renderDashboard === 'function') renderDashboard();
   }
