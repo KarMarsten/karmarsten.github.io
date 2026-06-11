@@ -105,7 +105,34 @@ function authSignIn() {
   }
 
   initGoogleSignIn();
-  google.accounts.id.prompt();
+
+  // Request calendar OAuth token at the same time as identity sign-in
+  calState.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: calState.clientId,
+    scope: CAL_SCOPE,
+    callback: (resp) => {
+      if (resp.error) {
+        console.error('GCal auth error:', resp);
+        return;
+      }
+      calState.token = resp.access_token;
+      const expiry = Date.now() + (resp.expires_in || 3600) * 1000;
+      localStorage.setItem(CAL_TOKEN_KEY, calState.token);
+      localStorage.setItem(CAL_EXPIRY_KEY, String(expiry));
+      calFetchUpcoming().then(() => {
+        if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
+        if (typeof renderDashboard === 'function') renderDashboard();
+      });
+    },
+  });
+
+  // First get identity, then request calendar access
+  google.accounts.id.prompt((notification) => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // One Tap not shown or skipped — still request calendar token
+      calState.tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+  });
 }
 
 function authSignOut() {
