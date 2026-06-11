@@ -79,8 +79,18 @@ function handleCredentialResponse(response) {
   };
 
   saveUserProfile(userProfile);
-  if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-  if (typeof renderDashboard === 'function') renderDashboard();
+
+  // If a valid calendar token exists, re-fetch events now that user is signed in
+  if (calState.token) {
+    calFetchUpcoming().then(() => {
+      if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
+      if (typeof renderDashboard === 'function') renderDashboard();
+    });
+  } else {
+    // No token yet — prompt the user to reconnect calendar
+    if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
+    if (typeof renderDashboard === 'function') renderDashboard();
+  }
 }
 
 function authSignIn() {
