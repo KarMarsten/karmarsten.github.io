@@ -100,6 +100,8 @@ function authSignIn() {
 
 function authSignOut() {
   saveUserProfile(null);
+  calClearToken();
+  calState.events = [];
   if (typeof google !== 'undefined' && google.accounts?.id) {
     google.accounts.id.disableAutoSelect();
   }
