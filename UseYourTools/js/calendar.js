@@ -8,7 +8,7 @@ const CAL_TOKEN_KEY    = 'uyt_gcal_token';
 const CAL_CLIENT_KEY   = 'uyt_gcal_client_id';
 const CAL_EXPIRY_KEY   = 'uyt_gcal_expiry';
 const USER_PROFILE_KEY = 'uyt_user_profile';
-const CAL_SCOPE        = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.profile';
+const CAL_SCOPE        = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/gmail.readonly';
 const CAL_API_BASE     = 'https://www.googleapis.com/calendar/v3';
 
 // In-memory state
@@ -19,6 +19,7 @@ const calState = {
   events: [],
   fetchError: null,
   userProfile: null,
+  unreadCount: null,
 };
 
 // ── Bootstrap ───────────────────────────────────────────────
@@ -31,7 +32,10 @@ function calInit() {
   const expiry = Number(localStorage.getItem(CAL_EXPIRY_KEY) || 0);
   if (token && Date.now() < expiry) {
     calState.token = token;
-    calFetchUpcoming().catch(() => calClearToken());
+    Promise.all([
+      calFetchUpcoming().catch(() => calClearToken()),
+      calFetchUnreadCount(),
+    ]);
   }
 }
 
@@ -87,7 +91,7 @@ function calConnect() {
 
       // Fetch user's name/profile from Google
       await calFetchUserProfile();
-      await calFetchUpcoming();
+      await Promise.all([calFetchUpcoming(), calFetchUnreadCount()]);
 
       if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
       if (typeof renderDashboard     === 'function') renderDashboard();
@@ -95,6 +99,25 @@ function calConnect() {
   });
 
   calState.tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function calFetchUnreadCount() {
+  if (!calState.token) return;
+  try {
+    const res = await fetch(
+      'https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX',
+      { headers: { Authorization: `Bearer ${calState.token}` } }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    calState.unreadCount = typeof data.messagesUnread === 'number' ? data.messagesUnread
+                         : typeof data.threadsUnread  === 'number' ? data.threadsUnread
+                         : 0;
+    console.log('Gmail label data:', data);
+  } catch (err) {
+    console.warn('Could not fetch Gmail unread count:', err);
+    calState.unreadCount = null;
+  }
 }
 
 async function calFetchUserProfile() {
@@ -121,6 +144,7 @@ function calDisconnect() {
   }
   calClearToken();
   calState.events = [];
+  calState.unreadCount = null;
   saveUserProfile(null);
   if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
   if (typeof renderDashboard     === 'function') renderDashboard();
