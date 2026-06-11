@@ -22,7 +22,7 @@ UseYourTools for Work gives you a single place to manage your workday:
 | Integration | Status |
 |---|---|
 | Google Calendar | ✅ Working |
-| Gmail | Coming soon |
+| Gmail unread count | ✅ Working |
 | JIRA | Coming soon |
 | Salesforce | Coming soon |
 | Outlook | Coming soon |
@@ -79,6 +79,7 @@ Ported directly from the iOS app:
 ## Roadmap
 
 - [x] Google Calendar integration
+- [x] Gmail unread count on dashboard
 - [ ] Gmail inbox summary on dashboard
 - [ ] JIRA / Salesforce case list with Kanban view
 - [ ] PDF export for daily schedule
