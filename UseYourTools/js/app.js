@@ -420,7 +420,7 @@ function renderDashboard() {
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;">
         <h3 style="margin:0;">${escHtml(greeting)}</h3>
         <button class="connect-btn" onclick="${calIsConnected() ? 'calDisconnect()' : 'calConnect()'}">
-          ${calIsConnected() ? 'Sign out' : 'Connect Google Calendar'}
+          ${calIsConnected() ? 'Sign out' : 'Connect to Google'}
         </button>
       </div>
       <div class="date-display">${formatDate(now)}</div>
@@ -453,7 +453,8 @@ function renderDashboard() {
         </div>
         ${!calIsConnected() ? `
           <div class="dash-card-value">—</div>
-          <div class="dash-card-sub">Connect Google Calendar to also see your unread email count</div>
+          <div class="dash-card-sub">Connect Google Calendar to also see your Gmail unread count</div>
+          <div class="dash-card-action" onclick="openSettings()" style="cursor:pointer">Connect ${ICONS.arrowRight}</div>
         ` : calState.unreadCount === null ? `
           <div class="dash-card-value">—</div>
           <div class="dash-card-sub">Loading inbox…</div>
