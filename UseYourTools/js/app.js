@@ -163,6 +163,26 @@ function renderSettingsPanel() {
       </div>
     </div>
 
+    <!-- Google sign-in -->
+    <div class="settings-section">
+      <div class="settings-section-title">Google Sign In</div>
+      ${calState.userProfile ? `
+        <div class="settings-row" style="align-items:center;gap:12px;">
+          <img src="${escHtml(calState.userProfile.picture)}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,0.1);">
+          <div style="min-width:0;">
+            <div class="settings-label" style="margin-bottom:4px;">${escHtml(calState.userProfile.name)}</div>
+            <div class="settings-sublabel">${escHtml(calState.userProfile.email)}</div>
+          </div>
+        </div>
+        <button class="connect-btn" onclick="authSignOut()">Sign out</button>
+      ` : `
+        <p>
+          Sign in with Google to personalize your profile and keep your calendar connection tied to your account.
+        </p>
+        <button class="connect-btn" onclick="authSignIn()">Sign in with Google</button>
+      `}
+    </div>
+
     <!-- Appearance -->
     <div class="settings-section">
       <div class="settings-section-title">Appearance</div>
@@ -377,7 +397,8 @@ function renderDashboard() {
   const el = document.getElementById('dash-content');
   const p  = state.prefs;
   const now = new Date();
-  const greeting = `${getGreeting()}${p.userName ? `, ${p.userName}` : ''}`;
+  const profileName = calState.userProfile?.name || p.userName;
+  const greeting = `${getGreeting()}${profileName ? `, ${profileName}` : ''}`;
   const quote = getDailyQuote();
   const events = calUpcomingEvents();
 
@@ -389,6 +410,13 @@ function renderDashboard() {
       <div class="dash-card-sub">Connect your Google Calendar to see upcoming events</div>
       <div class="dash-card-action" onclick="openSettings()" style="cursor:pointer">
         Connect calendar ${ICONS.arrowRight}
+      </div>`;
+  } else if (calState.fetchError) {
+    eventsCardContent = `
+      <div class="dash-card-value" style="font-size:16px;font-weight:500">Unable to load events</div>
+      <div class="dash-card-sub">${escHtml(calState.fetchError)}</div>
+      <div class="dash-card-action" onclick="openSettings()" style="cursor:pointer">
+        Reconnect calendar ${ICONS.arrowRight}
       </div>`;
   } else if (events.length === 0) {
     eventsCardContent = `
@@ -414,7 +442,12 @@ function renderDashboard() {
   el.innerHTML = `
     <div class="dashboard-greeting">
       <div class="time-display" id="live-time">${formatCurrentTime()}</div>
-      <h3>${escHtml(greeting)}</h3>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;">
+        <h3 style="margin:0;">${escHtml(greeting)}</h3>
+        <button class="connect-btn" onclick="${calState.userProfile ? 'authSignOut()' : 'authSignIn()'}">
+          ${calState.userProfile ? 'Sign out' : 'Sign in with Google'}
+        </button>
+      </div>
       <div class="date-display">${formatDate(now)}</div>
     </div>
 
