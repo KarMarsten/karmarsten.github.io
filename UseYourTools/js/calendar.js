@@ -4,19 +4,19 @@
 // No backend required — runs entirely in the browser
 // ============================================================
 
-const CAL_TOKEN_KEY      = 'uyt_gcal_token';
-const CAL_CLIENT_KEY     = 'uyt_gcal_client_id';
-const CAL_EXPIRY_KEY     = 'uyt_gcal_expiry';
-const USER_PROFILE_KEY   = 'uyt_user_profile';
-const CAL_SCOPE          = 'https://www.googleapis.com/auth/calendar.readonly';
-const CAL_API_BASE       = 'https://www.googleapis.com/calendar/v3';
+const CAL_TOKEN_KEY    = 'uyt_gcal_token';
+const CAL_CLIENT_KEY   = 'uyt_gcal_client_id';
+const CAL_EXPIRY_KEY   = 'uyt_gcal_expiry';
+const USER_PROFILE_KEY = 'uyt_user_profile';
+const CAL_SCOPE        = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.profile';
+const CAL_API_BASE     = 'https://www.googleapis.com/calendar/v3';
 
 // In-memory state
 const calState = {
   token: null,
   clientId: null,
   tokenClient: null,
-  events: [],          // cached events for today
+  events: [],
   fetchError: null,
   userProfile: null,
 };
@@ -27,15 +27,11 @@ function calInit() {
   calState.clientId = localStorage.getItem(CAL_CLIENT_KEY) || '';
   calState.userProfile = loadUserProfile();
 
-  const token   = localStorage.getItem(CAL_TOKEN_KEY);
-  const expiry  = Number(localStorage.getItem(CAL_EXPIRY_KEY) || 0);
+  const token  = localStorage.getItem(CAL_TOKEN_KEY);
+  const expiry = Number(localStorage.getItem(CAL_EXPIRY_KEY) || 0);
   if (token && Date.now() < expiry) {
     calState.token = token;
     calFetchUpcoming().catch(() => calClearToken());
-  }
-
-  if (calState.clientId) {
-    initGoogleSignIn();
   }
 }
 
@@ -56,123 +52,18 @@ function saveUserProfile(profile) {
   calState.userProfile = profile;
 }
 
-function initGoogleSignIn() {
-  if (typeof google === 'undefined' || !google.accounts?.id) return;
-
-  google.accounts.id.initialize({
-    client_id: calState.clientId,
-    callback: handleCredentialResponse,
-    auto_select: false,
-    cancel_on_tap_outside: false,
-  });
-}
-
-function handleCredentialResponse(response) {
-  if (!response.credential) return;
-
-  const profile = parseJwt(response.credential);
-  const userProfile = {
-    name: profile.name || '',
-    email: profile.email || '',
-    picture: profile.picture || '',
-    locale: profile.locale || '',
-  };
-
-  saveUserProfile(userProfile);
-
-  if (calState.token) {
-    // Token still valid — just re-fetch and re-render
-    calFetchUpcoming().then(() => {
-      if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-      if (typeof renderDashboard === 'function') renderDashboard();
-    });
-  } else if (calState.clientId) {
-    // Signed in but no token — auto-request calendar access silently
-    calConnect(true);
-  } else {
-    if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-    if (typeof renderDashboard === 'function') renderDashboard();
-  }
-}
-
-function authSignIn() {
-  if (!calState.clientId) {
-    alert('Please enter your Google Client ID first.');
-    return;
-  }
-
-  if (typeof google === 'undefined' || !google.accounts?.id) {
-    alert('Google Identity Services failed to load. Try refreshing the page.');
-    return;
-  }
-
-  initGoogleSignIn();
-
-  // Request calendar OAuth token at the same time as identity sign-in
-  calState.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: calState.clientId,
-    scope: CAL_SCOPE,
-    callback: (resp) => {
-      if (resp.error) {
-        console.error('GCal auth error:', resp);
-        return;
-      }
-      calState.token = resp.access_token;
-      const expiry = Date.now() + (resp.expires_in || 3600) * 1000;
-      localStorage.setItem(CAL_TOKEN_KEY, calState.token);
-      localStorage.setItem(CAL_EXPIRY_KEY, String(expiry));
-      calFetchUpcoming().then(() => {
-        if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-        if (typeof renderDashboard === 'function') renderDashboard();
-      });
-    },
-  });
-
-  // First get identity, then request calendar access
-  google.accounts.id.prompt((notification) => {
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      // One Tap not shown or skipped — still request calendar token
-      calState.tokenClient.requestAccessToken({ prompt: 'consent' });
-    }
-  });
-}
-
-function authSignOut() {
-  saveUserProfile(null);
-  calClearToken();
-  calState.events = [];
-  if (typeof google !== 'undefined' && google.accounts?.id) {
-    google.accounts.id.disableAutoSelect();
-  }
-  if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-  if (typeof renderDashboard === 'function') renderDashboard();
-}
-
-function parseJwt(token) {
-  const payload = token.split('.')[1];
-  if (!payload) return {};
-  const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-  const json = decodeURIComponent(atob(base64).split('').map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`).join(''));
-  try {
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-}
-
 // ── OAuth2 flow ──────────────────────────────────────────────
 
-function calConnect(silent = false) {
+function calConnect() {
   const clientId = (document.getElementById('gcal-client-id-input')?.value || '').trim()
                 || calState.clientId;
   if (!clientId) {
     alert('Please enter your Google Client ID first.');
     return;
   }
-  // Save client ID
+
   calState.clientId = clientId;
   localStorage.setItem(CAL_CLIENT_KEY, clientId);
-  initGoogleSignIn();
 
   if (typeof google === 'undefined' || !google.accounts) {
     alert('Google Identity Services failed to load. Check your internet connection and try again.');
@@ -182,28 +73,46 @@ function calConnect(silent = false) {
   calState.tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: CAL_SCOPE,
-    callback: (resp) => {
+    callback: async (resp) => {
       if (resp.error) {
         console.error('GCal auth error:', resp);
-        if (!silent) alert('Calendar connection failed: ' + resp.error);
+        alert('Calendar connection failed: ' + resp.error);
         return;
       }
-      // Token valid for ~1 hour
+
       calState.token = resp.access_token;
       const expiry = Date.now() + (resp.expires_in || 3600) * 1000;
       localStorage.setItem(CAL_TOKEN_KEY, calState.token);
       localStorage.setItem(CAL_EXPIRY_KEY, String(expiry));
 
-      calFetchUpcoming().then(() => {
-        // Re-render settings and dashboard
-        if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
-        if (typeof renderDashboard     === 'function') renderDashboard();
-      });
+      // Fetch user's name/profile from Google
+      await calFetchUserProfile();
+      await calFetchUpcoming();
+
+      if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
+      if (typeof renderDashboard     === 'function') renderDashboard();
     },
   });
 
-  // Use empty prompt when called silently after sign-in (avoids double popup)
-  calState.tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
+  calState.tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function calFetchUserProfile() {
+  if (!calState.token) return;
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${calState.token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    saveUserProfile({
+      name:    data.name    || '',
+      email:   data.email   || '',
+      picture: data.picture || '',
+    });
+  } catch (err) {
+    console.warn('Could not fetch user profile:', err);
+  }
 }
 
 function calDisconnect() {
@@ -212,6 +121,7 @@ function calDisconnect() {
   }
   calClearToken();
   calState.events = [];
+  saveUserProfile(null);
   if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
   if (typeof renderDashboard     === 'function') renderDashboard();
 }
@@ -226,17 +136,18 @@ function calIsConnected() {
   return !!calState.token;
 }
 
+
 // ── API calls ────────────────────────────────────────────────
 
 async function calFetchUpcoming(daysAhead = 7) {
   calState.fetchError = null;
   if (!calState.token) return [];
 
-  const now     = new Date();
-  const end     = new Date(now);
+  const now = new Date();
+  const end = new Date(now);
   end.setDate(end.getDate() + daysAhead);
 
-  const params  = new URLSearchParams({
+  const params = new URLSearchParams({
     calendarId:   'primary',
     timeMin:      now.toISOString(),
     timeMax:      end.toISOString(),
@@ -261,14 +172,9 @@ async function calFetchUpcoming(daysAhead = 7) {
       let errorMsg = body;
       try {
         const json = JSON.parse(body);
-        if (json.error?.message) {
-          errorMsg = json.error.message;
-        } else if (json.error_description) {
-          errorMsg = json.error_description;
-        }
-      } catch (_err) {
-        // keep raw text if parsing fails
-      }
+        if (json.error?.message) errorMsg = json.error.message;
+        else if (json.error_description) errorMsg = json.error_description;
+      } catch (_err) {}
       console.error('GCal fetch failed:', res.status, errorMsg);
       calState.fetchError = `Unable to load calendar events (${res.status}): ${escHtml(String(errorMsg || 'unknown error'))}`;
       return [];
@@ -296,28 +202,24 @@ async function calFetchUpcoming(daysAhead = 7) {
 
 // ── Helpers ──────────────────────────────────────────────────
 
-/** Events happening today */
 function calTodayEvents() {
   const today = new Date().toDateString();
   return calState.events.filter(e => new Date(e.start).toDateString() === today);
 }
 
-/** All cached upcoming events */
 function calUpcomingEvents() {
   return calState.events;
 }
 
-/** Format a calendar event time for display */
 function calFormatEventTime(event) {
   if (event.allDay) return 'All day';
   const d = new Date(event.start);
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-/** Format event date label */
 function calFormatEventDate(event) {
   const d = new Date(event.start);
-  const today = new Date();
+  const today    = new Date();
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
 
   if (d.toDateString() === today.toDateString())    return 'Today';
