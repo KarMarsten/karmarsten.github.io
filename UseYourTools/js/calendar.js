@@ -87,8 +87,8 @@ function handleCredentialResponse(response) {
       if (typeof renderDashboard === 'function') renderDashboard();
     });
   } else if (calState.clientId) {
-    // Signed in but no token — auto-request calendar access
-    calConnect();
+    // Signed in but no token — auto-request calendar access silently
+    calConnect(true);
   } else {
     if (typeof renderSettingsPanel === 'function') renderSettingsPanel();
     if (typeof renderDashboard === 'function') renderDashboard();
@@ -162,7 +162,7 @@ function parseJwt(token) {
 
 // ── OAuth2 flow ──────────────────────────────────────────────
 
-function calConnect() {
+function calConnect(silent = false) {
   const clientId = (document.getElementById('gcal-client-id-input')?.value || '').trim()
                 || calState.clientId;
   if (!clientId) {
@@ -185,7 +185,7 @@ function calConnect() {
     callback: (resp) => {
       if (resp.error) {
         console.error('GCal auth error:', resp);
-        alert('Calendar connection failed: ' + resp.error);
+        if (!silent) alert('Calendar connection failed: ' + resp.error);
         return;
       }
       // Token valid for ~1 hour
@@ -202,7 +202,8 @@ function calConnect() {
     },
   });
 
-  calState.tokenClient.requestAccessToken({ prompt: 'consent' });
+  // Use empty prompt when called silently after sign-in (avoids double popup)
+  calState.tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
 }
 
 function calDisconnect() {
