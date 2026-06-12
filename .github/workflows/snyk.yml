@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  security-events: write
+  security-events: write  # required to upload SARIF results to GitHub Security tab
 
 jobs:
   snyk:
@@ -17,16 +17,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
       - name: Run Snyk Code scan
-        uses: snyk/actions/node@master
-        continue-on-error: true
+        run: snyk code test --sarif-file-output=snyk.sarif || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: code test
-          args: --sarif-file-output=snyk.sarif
 
       - name: Upload SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
