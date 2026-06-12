@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities for up to 30 days.
+version: v1.28.0
+
+patch: {}
+ignore:
+  SNYK-JS-INFLIGHT-6095116:
+    - '*':
+        reason: Mitigated via npm overrides - glob@^10.4.2 forced, inflight not installed
+        expires: '2026-12-31T23:59:59.999Z'
+  SNYK-JAVA-COMSQUAREUPOKHTTP3-5789026:
+    - '*':
+        reason: No upstream fix for okhttp-brotli; test/build dependency only
+        expires: '2026-12-31T23:59:59.999Z'
+  snyk:lic:npm:lightningcss:MPL-2.0:
+    - '*':
+        reason: MPL-2.0 approved for lightningcss (via expo)
+        expires: '2026-12-31T23:59:59.999Z'
