@@ -96,9 +96,12 @@ function loadNotes() {
   catch { return {}; }
 }
 
+// FIX: Prototype Pollution — validate dateKey and hour before using as property names
 function saveNote(dateKey, hour, text) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return;
   const notes = loadNotes();
-  if (!notes[dateKey]) notes[dateKey] = {};
+  if (!Object.prototype.hasOwnProperty.call(notes, dateKey)) notes[dateKey] = {};
   notes[dateKey][hour] = text;
   localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
 }
@@ -535,16 +538,16 @@ function renderPlanner() {
   const body = document.getElementById('planner-blocks');
   if (!body) return;
 
+  // FIX: XSS — build HTML without note content; populate textarea values via .value after DOM insertion
   let html = '';
   for (let h = p.startHour; h < p.endHour; h++) {
-    const savedNote = (notes[dateKey] && notes[dateKey][h]) || '';
     const isCurrent = isToday && now.getHours() === h;
     html += `
       <div class="time-block${isCurrent ? ' current-hour' : ''}">
         <div class="time-label">${formatTime(h, 0, p.use12HourClock)}</div>
         <div class="time-block-content">
           <textarea class="time-block-notes" rows="2" placeholder="Add notes..."
-            data-hour="${h}" data-date="${dateKey}">${escHtml(savedNote)}</textarea>
+            data-hour="${h}" data-date="${dateKey}"></textarea>
         </div>
       </div>
     `;
@@ -559,6 +562,10 @@ function renderPlanner() {
   }
 
   body.querySelectorAll('.time-block-notes').forEach(ta => {
+    // Populate value via .value (safe — not innerHTML) to avoid XSS taint from localStorage
+    const savedNote = (notes[dateKey] && notes[dateKey][Number(ta.dataset.hour)]) || '';
+    ta.value = savedNote;
+
     ta.addEventListener('input', () => {
       saveNote(ta.dataset.date, Number(ta.dataset.hour), ta.value);
       ta.style.height = 'auto';
