@@ -53,7 +53,7 @@ Calendar connection is handled entirely in the browser via Google OAuth2. To con
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials) and create an OAuth 2.0 Client ID (Web application type)
 2. Enable the **Google Calendar API** and **People API** for that project
 3. Add your authorized origins:
-   - `https://klm-snyk.github.io` (production)
+   - `https://karmarsten.github.io` (production)
    - `http://localhost:3000` (or your local port)
 4. In the app Settings, paste your Client ID and click **Connect**
 5. Approve the Google OAuth consent screen — your name and calendar events will load automatically
